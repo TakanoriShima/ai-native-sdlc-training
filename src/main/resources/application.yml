@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: salesmanagement
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:salesmanagement}
+    username: ${DB_USERNAME:salesmanagement}
+    password: ${DB_PASSWORD:salesmanagement}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  thymeleaf:
+    cache: false
