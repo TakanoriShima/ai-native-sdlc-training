@@ -80,27 +80,27 @@ MVP では、過度に複雑なフロントエンド・バックエンド分離�
 
 ## 3.2 採用技術
 
-| 分類              | 技術                        |
-| ----------------- | --------------------------- |
-| Language          | Java                        |
-| Backend           | Spring Boot                 |
-| MVC               | Spring MVC                  |
-| View              | Thymeleaf                   |
-| Security          | Spring Security             |
-| ORM               | Spring Data JPA / Hibernate |
-| Database          | PostgreSQL                  |
-| Migration         | Flyway                      |
-| Build             | Maven                       |
-| Test              | JUnit 5                     |
-| Mock              | Mockito                     |
-| Integration Test  | Spring Boot Test            |
-| Version Control   | Git / GitHub                |
-| CI                | GitHub Actions              |
-| Container         | Docker / Docker Compose     |
-| AI Implementation | Claude Code                 |
-| AI Review         | Codex                       |
+| 分類              | 技術                            |
+| ----------------- | ------------------------------- |
+| Language          | Java 25 (LTS)                   |
+| Backend           | Spring Boot 4.1.1               |
+| MVC               | Spring MVC                      |
+| View              | Thymeleaf                       |
+| Security          | Spring Security                 |
+| ORM               | Spring Data JPA / Hibernate     |
+| Database          | PostgreSQL 18                   |
+| Migration         | Flyway                          |
+| Build             | Maven（Maven Wrapper を使用）   |
+| Test              | JUnit 5                         |
+| Mock              | Mockito                         |
+| Integration Test  | Spring Boot Test                |
+| Version Control   | Git / GitHub                    |
+| CI                | GitHub Actions                  |
+| Container         | Docker / Docker Compose         |
+| AI Implementation | Claude Code                     |
+| AI Review         | Codex                           |
 
-具体的なバージョンについては、実装開始時点の安定版および互換性を確認して決定する。
+上記バージョンは実装開始前に人間により決定済みである。
 
 ---
 
@@ -461,9 +461,9 @@ MVP では高度な BI 機能を実装せず、業務上確認が必要な情報
 - Project 1 : 0..N Invoice
 - Invoice 1 : 0..N Payment
 
-Invoice と Payment は将来的な分割請求・部分入金への拡張可能性を考慮して 1:N を許容できるモデルを基本候補とする。
+MVP では、1 案件につき請求書は最大 1 件、1 請求につき入金は 1 件（入金額は請求額と一致）とすることが決定済みである。分割請求・分割入金・過入金・不足入金は MVP 対象外とする。
 
-ただし MVP で実際に複数請求・部分入金を許可するかは別途決定する。
+DB モデルは将来の Phase 2 拡張（分割請求・部分入金対応）を考慮し、Invoice と Payment を 1:N で許容できる構造としてよいが、MVP のアプリケーションロジックでは上記の制約を適用する。
 
 ---
 
@@ -743,19 +743,19 @@ Service 層で許可された遷移を判定する。
              ↓
           営業修正
 
-100 万円を超える見積は承認対象とすることを基本とする。
+見積金額が 1,000,000 円を超える場合のみ、営業責任者による承認を必須とする。
 
 境界条件：
 
-    1,000,000円
-
-を承認対象に含めるかについては、要件上の「100 万円を超える」に従い、
+    999,999円   承認不要
+    1,000,000円 承認不要
+    1,000,001円 承認必須
 
     amount > 1,000,000
 
-を基本候補とする。
+の場合に承認を必須とする。
 
-ただし業務確認後に最終決定する。
+緊急時における承認スキップ機能は MVP では設けない。
 
 ---
 
@@ -1195,7 +1195,11 @@ Pull Request 時にも CI を実行することを目標とする。
 
 最低限 PostgreSQL をコンテナで起動できる構成とする。
 
-将来的には Spring Boot アプリケーション自体もコンテナ化できる構成を検討する。
+MVP のデプロイ先は Render とする。
+
+Spring Boot アプリケーションは Docker イメージ化し、Render の Web Service としてデプロイする。
+
+データベースは Render PostgreSQL を利用する。
 
 ---
 
@@ -1268,27 +1272,21 @@ Claude Code と Codex の意見が異なる場合、人間が要件・設計を�
 - 営業担当者未定案件を許可するか
 - 複数営業担当者を許可するか
 - 複数作業担当者を許可するか
-- 見積承認の例外を許可するか
 - 承認後の変更で再承認が必要となる項目
 
 ## 見積
 
 - 見積番号採番方式
-- 見積 PDF を MVP に含めるか
-- 見積テンプレート機能の実装範囲
 
-## 請求・入金
-
-- MVP で複数請求を許可するか
-- MVP で部分入金を許可するか
+見積 PDF 出力・見積テンプレート機能は Phase 2 とし、MVP 対象外とすることが決定済みである。
 
 ## 技術
 
-- Java バージョン
-- Spring Boot バージョン
-- PostgreSQL バージョン
-- デプロイ先
 - E2E テストツール
+
+Java / Spring Boot / PostgreSQL のバージョン、ビルドツール、デプロイ先は決定済みである（3.2 章参照）。
+
+MVP における請求・入金の件数制約（1 案件 1 請求、1 請求 1 入金）についても決定済みである（13 章参照）。
 
 ---
 

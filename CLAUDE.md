@@ -167,16 +167,16 @@ MVP はモノリシックなサーバーサイド Web アプリケーション�
 
 予定している主要技術は以下です。
 
-- Java
-- Spring Boot
+- Java 25 (LTS)
+- Spring Boot 4.1.1
 - Spring MVC
 - Thymeleaf
 - Spring Security
 - Spring Data JPA
 - Hibernate
-- PostgreSQL
+- PostgreSQL 18
 - Flyway
-- Maven
+- Maven（Maven Wrapper を使用）
 - JUnit 5
 - Mockito
 - Spring Boot Test
@@ -187,7 +187,9 @@ MVP はモノリシックなサーバーサイド Web アプリケーション�
 
 SPA やマイクロサービス構成は MVP では採用しません。
 
-正確なバージョンが未決定の場合は、勝手に決定せず確認してください。
+デプロイ先は Render とします。Spring Boot アプリケーションは Docker で Web Service としてデプロイし、データベースは Render PostgreSQL を利用します。
+
+上記以外でバージョン等が未決定の場合は、勝手に決定せず確認してください。
 
 ---
 
@@ -385,19 +387,20 @@ Issue を完了候補とするため、原則として以下を満たしてく�
 
 ## Important Unresolved Decisions
 
-現時点では、以下のような事項が未決定または最終確認待ちです。
+以下の事項は 2026-09-19 に人間により決定されました。
 
-- Java / Spring Boot / PostgreSQL 等の正確なバージョン
-- 案件作成時の初期ステータス
-- 100 万円ちょうどの見積の承認要否
-- 緊急時の承認例外
-- MVP で 1 案件 1 請求とするか
-- MVP で 1 請求 1 入金とするか
-- デプロイ先
-- 見積テンプレート管理を MVP へ含めるか
-- 見積 PDF 出力を MVP へ含めるか
+- Java / Spring Boot / PostgreSQL のバージョン → Java 25 (LTS) / Spring Boot 4.1.1 / PostgreSQL 18
+- ビルドツール → Maven Wrapper を使用
+- 案件作成時の初期ステータス → `INQUIRY`
+- 100 万円ちょうどの見積の承認要否 → 承認不要（`1,000,000` 円を超える場合のみ承認必須）
+- 緊急時の承認例外 → MVP では承認スキップ機能を設けない
+- MVP で 1 案件 1 請求とするか → 1 案件につき請求書は最大 1 件
+- MVP で 1 請求 1 入金とするか → 1 請求につき入金は 1 件とし、入金額は請求額と一致（分割入金・過入金・不足入金は対象外）
+- デプロイ先 → Render（Spring Boot アプリケーションを Docker で Web Service としてデプロイ、データベースは Render PostgreSQL）
+- 見積テンプレート管理を MVP へ含めるか → Phase 2（MVP 対象外）
+- 見積 PDF 出力を MVP へ含めるか → Phase 2（MVP 対象外）
 
-これらについて、Claude Code が独自に仕様を確定してはいけません。
+上記以外に未決定事項が判明した場合、Claude Code が独自に仕様を確定してはいけません。
 
 実装上決定が必要になった時点で、人間へ確認してください。
 
