@@ -336,6 +336,8 @@ MVP では顧客担当者を別 Entity に分離しない。
 | createdAt           | LocalDateTime | NOT NULL   |
 | updatedAt           | LocalDateTime | NOT NULL   |
 
+salesRepresentative は登録時点から必須（NOT NULL）とし、営業担当者未定の案件登録は MVP では許可しない（07 BR-002 参照）。
+
 初期ステータス：
 
     INQUIRY
@@ -398,17 +400,17 @@ MVP では 1 案件につき 1 つの最新引き継ぎ情報を基本とする�
 
 # 12. WorkAssignment Entity
 
-| Field      | Type          | Constraint |
-| ---------- | ------------- | ---------- |
-| id         | Long          | PK         |
-| project    | Project       | NOT NULL   |
-| worker     | User          | NOT NULL   |
-| assignedBy | User          | NOT NULL   |
-| assignedAt | LocalDateTime | NOT NULL   |
+| Field      | Type          | Constraint        |
+| ---------- | ------------- | ----------------- |
+| id         | Long          | PK                |
+| project    | Project       | NOT NULL / UNIQUE |
+| worker     | User          | NOT NULL          |
+| assignedBy | User          | NOT NULL          |
+| assignedAt | LocalDateTime | NOT NULL          |
 
-MVP では 1 案件 1 作業担当者を基本とする。
+MVP では、Project と WorkAssignment の関係を 1 : 0..1 とし、1 案件につき作業担当者は 1 名とする。project 列の UNIQUE 制約により、1 案件に複数の WorkAssignment が登録されないことを DB レベルで保証する。
 
-DB モデル上は将来の複数担当者対応を考慮できる構成としてもよい。
+複数作業担当者への対応が必要になった場合は、Phase 2 で UNIQUE 制約の解除を含めたデータモデル変更を改めて設計する。
 
 ---
 
@@ -781,13 +783,11 @@ Controller や View にのみ記述しない。
 
 # 32. 承認済み見積変更
 
-承認済み見積の金額を変更した場合は、承認状態を無効化し、再承認を必要とする。
+承認済み見積の amount（金額）を変更した場合は、承認状態を無効化し、再承認を必須とする。
 
-MVP では少なくとも、
+MVP で再承認の対象とする変更項目は amount のみとする。
 
-    amount
-
-変更時を対象とする。
+amount 以外の主要条件（納期、作業内容等）を再承認対象とするかは、Phase 2 で検討する。
 
 ---
 
@@ -829,6 +829,8 @@ MVP では少なくとも、
     WORKER
 
 ロールを基本とする。
+
+MVP では 1 案件につき WorkAssignment は 1 件のみとする。既に作業担当者が設定されている案件への重複登録は、project 列の UNIQUE 制約により拒否される。
 
 ---
 
@@ -1845,11 +1847,20 @@ Claude Code と Codex の意見が異なる場合、どちらかを自動的に�
 ### Project
 
 - 初期ステータス: `INQUIRY`
+- 営業担当者: 案件登録時から必須（未定での登録は不可、07 BR-002 参照）
+- 営業担当者の人数: MVP では 1 案件 1 名とする（複数対応は Phase 2、07 BR-002 参照）。Project と User の単一関連を維持し、ジョインテーブルは導入しない
+
+### WorkAssignment
+
+- MVP では 1 案件 1 作業担当者とする（07 BR-014 参照）
+- Project : WorkAssignment は 1 : 0..1 とし、project 列に UNIQUE 制約を設ける（12 章参照）
+- 複数作業担当者への対応は Phase 2 でデータモデル変更・マイグレーションを改めて設計する
 
 ### Approval
 
 - `1,000,000円ちょうど` の扱い: 承認不要（`amount > 1,000,000` の場合のみ承認必須）
 - 緊急承認例外: MVP では設けない
+- 承認済み見積の amount 変更時の再承認: 必須とする（amount のみが対象。amount 以外の主要条件は Phase 2 で検討）
 
 ### Invoice
 
@@ -1868,7 +1879,7 @@ Claude Code と Codex の意見が異なる場合、どちらかを自動的に�
 - 見積テンプレート管理・バージョン管理: Phase 2（MVP 対象外）
 - 見積書 PDF 出力: Phase 2（MVP 対象外）
 
-なお、見積番号採番方式、承認後の金額変更時の再承認要否、E2E テストツール等、上記以外の未確定事項は引き続き人間の判断待ちである（41 章参照）。
+なお、見積番号採番方式、E2E テストツール等、上記以外の未確定事項は引き続き人間の判断待ちである（41 章参照）。
 
 ---
 
