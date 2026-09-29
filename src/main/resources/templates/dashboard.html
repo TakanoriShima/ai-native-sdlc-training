@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>ダッシュボード</title>
+</head>
+<body>
+<h1>ダッシュボード</h1>
+
+<p>ログイン中のユーザー: <span th:text="${name}">氏名</span></p>
+<p>Role: <span th:text="${role}">ROLE</span></p>
+
+<form th:action="@{/logout}" method="post">
+    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit">ログアウト</button>
+</form>
+</body>
+</html>
