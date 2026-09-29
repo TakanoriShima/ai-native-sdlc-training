@@ -343,6 +343,10 @@ GitHub Issue
     ↓
 Claude Codeが関連資料を確認
     ↓
+Claude CodeがImplementation Planを提示
+    ↓
+人間がPlanを承認
+    ↓
 Claude Codeが実装
     ↓
 Claude Codeがテスト
