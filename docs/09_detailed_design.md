@@ -1615,6 +1615,12 @@ Thymeleaf Form では CSRF Token を利用する。
     MVC / Security Test
     Integration Test
 
+PostgreSQL を必要とする Repository Test / Integration Test では、Testcontainers（PostgreSQL モジュール）を使用する。導入に必要な test dependency は追加してよい。
+
+Testcontainers はあくまで自動テスト実行環境であり、実際のアプリケーション起動確認とは別に扱う。実際のアプリケーション起動確認（PostgreSQL 接続、Flyway migration の適用、通常 / dev プロファイルでの挙動、画面操作等）は、既存の `docker-compose.yml` が提供する PostgreSQL を使用して別途実施する。
+
+自動テスト（Testcontainers を含む）の成功のみをもって完了と判断せず、上記の実際のアプリケーション起動確認をあわせて実施する。
+
 ---
 
 # 68. Service 単体テスト
@@ -1720,9 +1726,7 @@ Thymeleaf Form では CSRF Token を利用する。
        ↓
     Complete
 
-可能であれば Testcontainers 等を利用して PostgreSQL を使った統合テストを検討する。
-
-ただし MVP の進行を阻害する場合は段階導入する。
+PostgreSQL を使った統合テストは、67 章のとおり Testcontainers を利用する。
 
 ---
 
