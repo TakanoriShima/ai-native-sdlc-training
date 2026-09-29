@@ -193,7 +193,6 @@ Thymeleaf を利用して HTML を生成する。
     ├── customer
     ├── project
     ├── quotation
-    ├── handoff
     ├── work
     ├── delivery
     ├── invoice
