@@ -1072,6 +1072,12 @@ DB スキーマ変更を SQL ファイルとしてバージョン管理する。
 
 本番・テスト環境でスキーマ差異が発生しにくい構成を目指す。
 
+Flyway migration は、本番を含む通常環境で適用する migration と、開発・デモ環境専用の migration を分離して管理する。
+
+開発・デモ専用の migration は、本番環境では適用しない。
+
+具体的な location 構成、Spring Profile の設定、バージョン番号の運用方法等の詳細は docs/09_detailed_design.md に従う。
+
 ---
 
 # 33. ログ設計

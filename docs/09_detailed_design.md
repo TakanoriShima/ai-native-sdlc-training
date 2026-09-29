@@ -558,6 +558,18 @@ Spring Data JPA を利用する。
 
 ---
 
+# 19-1. UserDetailsService
+
+User Entity を Spring Security の認証に接続するため、UserDetailsService 相当のコンポーネントを実装する。
+
+主な責務：
+
+- メールアドレスをキーに User を取得する（UserRepository の `findByEmail` を利用する）
+- 取得した User の Role を Spring Security の権限（GrantedAuthority）へ変換する
+- 存在しないユーザー、または無効化（enabled = false）されたユーザーの場合は、Spring Security の認証失敗として扱う
+
+---
+
 # 20. CustomerService
 
 主な責務：
@@ -989,7 +1001,7 @@ MVP では部分入金を扱わないため、
     InvoiceController
     PaymentController
 
-Spring Security の標準ログインを利用する場合、LoginController を不要とすることもできる。
+本プロジェクトでは SCR-001 として最小限のカスタムログイン画面を採用するため、LoginController を実装する。
 
 ---
 
@@ -1003,9 +1015,15 @@ MVP の基本 URL を以下とする。
     POST /login
     POST /logout
 
+ログイン成功後は `/dashboard` へリダイレクトする。
+
+ログイン失敗時は `/login?error` へ戻し、共通のエラーメッセージを表示する。認証情報が不正な場合と、無効化されたユーザーである場合を、画面上では区別しない。
+
 ## Dashboard
 
     GET /dashboard
+
+ログイン中のユーザー名と Role を表示する。案件・見積・承認待ち件数等の業務情報は、本 Issue では表示しない。08_basic_design.md §9 に示す将来のダッシュボード仕様を削除・変更するものではない。
 
 ## Users
 
@@ -1109,10 +1127,22 @@ Entity を直接 HTML Form へバインドしない。
     InvoiceForm
     PaymentForm
     UserForm
+    LoginForm
 
 入力用 Form と表示用 DTO は必要に応じて分離する。
 
 過度な DTO 増加は避ける。
+
+---
+
+# 48-1. LoginForm
+
+主な項目：
+
+    email
+    password
+
+ログイン ID には User.email を使用する。
 
 ---
 
@@ -1427,6 +1457,18 @@ MVP では主要な業務データについて物理削除を積極的に提供�
 
 既に適用済みのマイグレーションファイルは原則として変更しない。スキーマ変更が必要な場合は、新しいマイグレーションファイルを追加する。
 
+開発・デモ環境専用のマイグレーションは、通常の migration location とは別の location に分離する。
+
+    通常（本番を含む全環境で適用）：
+        classpath:db/migration
+
+    開発・デモ専用：
+        classpath:db/migration-demo
+
+`application-dev.yml` でのみ、上記両方の location を `spring.flyway.locations` に指定する。通常の `application.yml` では `classpath:db/migration` のみを対象とし、`db/migration-demo` は読み込まない。本番環境では `dev` プロファイルを有効化しない。
+
+バージョン番号は、通常 location と開発・デモ専用 location を合わせて、リポジトリ全体で一意の連番として管理する。
+
 ---
 
 # 62. 初期ユーザー
@@ -1443,6 +1485,14 @@ MVP では主要な業務データについて物理削除を積極的に提供�
     admin@example.com
 
 実在するメールアドレスは使用しない。
+
+これらの初期ユーザーは、開発・デモ専用の Flyway migration（61 章参照）で投入する。本番環境には投入しない。
+
+6 ユーザーは共通のデモ専用初期パスワードを使用する。
+
+    DemoPass123!
+
+DB には平文パスワードではなく、PasswordEncoder（65 章参照）で生成したハッシュ値のみを保存する。ハッシュ値は手作業で形式を推測せず、実際に採用する PasswordEncoder で `DemoPass123!` を変換した値を使用する。
 
 パスワードは本番用途ではないデモ用とし、README 等に本番認証情報と誤認されない形で記載する。
 
@@ -1478,6 +1528,10 @@ Spring Security で以下を設定する。
 
 URL のみで完全な業務認可を実現しようとせず、必要な箇所では Service / Method Security も利用する。
 
+認証には User Entity を UserDetailsService（19-1 章参照）経由で利用する。
+
+MVP の認証は Spring Security 標準のセッションベース認証とする。JWT 等は導入せず、独自のセッション管理機能も実装しない。セッションタイムアウト・同時ログイン数制限等の高度なセッション管理は、本 Issue の対象外とする。
+
 ---
 
 # 64. CSRF
@@ -1496,7 +1550,7 @@ Thymeleaf Form では CSRF Token を利用する。
 
 # 65. パスワード
 
-BCrypt 等の `PasswordEncoder` を利用する。
+`PasswordEncoderFactories.createDelegatingPasswordEncoder()` による `DelegatingPasswordEncoder` を採用する。
 
 以下は禁止する。
 
@@ -1610,6 +1664,9 @@ BCrypt 等の `PasswordEncoder` を利用する。
 
 最低限以下を確認する。
 
+- 有効なユーザーが正しい認証情報でログインできる
+- 認証情報が不正な場合はログインできない
+- 無効化されたユーザーはログインできない
 - 未認証ユーザーが業務画面へアクセスできない
 - SALES が見積承認できない
 - SALES_MANAGER が承認できる
